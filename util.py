@@ -21,7 +21,7 @@ class InputDialog:
          self.surface = None
          self.prompt(title_font, input_font)
       except Exception as e:
-         raise(str(e))
+         raise(Exception(str(e)))
          return
 
    def prompt(self, title_font, input_font):
