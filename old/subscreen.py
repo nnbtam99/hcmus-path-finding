@@ -1,5 +1,7 @@
 import pygame as pg
+from pygame.locals import *
 import sys
+from mainscreen import Map
 from lib import eztext
 
 pg.init()
@@ -45,7 +47,8 @@ class Screen01:
       self.screen.blit(text_title, text_rect)
 
       # Configure text input
-      self.box_input = eztext.Input(x=self.box_rect.x + 5, y=self.box_rect.y + 2, maxlength=22, font=input_font)
+      self.box_input = eztext.Input(x=self.box_rect.x + 5, y=self.box_rect.y + 2, \
+                                    maxlength=22, font=input_font, prompt='> ')
       self.box_input.draw(self.screen)
       pg.display.update()
    
@@ -54,15 +57,26 @@ class Screen01:
 
    def start(self):
       self.display()
+      world_map = None
+
       while not self.done:
          self.clock.tick(30)
          events = pg.event.get()
          for event in events:
             if event.type == pg.QUIT:
-               self.done = False
-               continue   
+               self.done = True
+               continue
+            elif event.type == pg.KEYDOWN and event.key == K_RETURN:
+               try:
+                  world_map = Map(self.box_input.get_text())
+                  self.done = True
+                  continue
+               except Exception as error:
+                  print(str(error))
 
          self.redraw_box_rect()
          self.box_input.update(events)
          self.box_input.draw(self.screen)
          pg.display.flip()
+
+      return world_map
