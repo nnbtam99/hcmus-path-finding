@@ -3,6 +3,7 @@ import pygame as pg
 
 scale_pxl = 15
 
+
 class Cell:
    def __init__(self, x, y):
       self.x = x
@@ -13,6 +14,7 @@ class Cell:
 
    @staticmethod
    def draw_line(cell_a, cell_b, surface, grid, color):
+      # Bresenham's line drawing algorithm
       dx, dy = cell_a.x - cell_b.x, cell_a.y - cell_b.y
       dx_abs, dy_abs = abs(dx), abs(dy)
       px, py = 2 * dy_abs - dx_abs, 2 * dx_abs - dy_abs
@@ -26,8 +28,11 @@ class Cell:
          while xs <= xe:
             surface.fill(color, grid[xs][y])
             xs += 1
-            px = (px + 2 * dy_abs if px < 0 else \
-                  px + 2 * (dy_abs - dx_abs))
+            if px < 0:
+               px += 2 * dy_abs
+            else:
+               y += (1 if dx * dy > 0 else -1) 
+               px += 2 * (dy_abs - dx_abs)
       else:
          if dy < 0:
             ys, ye, x = cell_a.y, cell_b.y, cell_a.x
@@ -37,8 +42,11 @@ class Cell:
          while ys <= ye:
             surface.fill(color, grid[x][ys])
             ys += 1
-            py = (py + 2 * dx_abs if py < 0 else \
-                  py + 2 * (dx_abs - dy_abs))
+            if py < 0:
+               py += 2 * dx_abs
+            else:
+               x += (1 if dx * dy > 0 else -1)
+               py += 2 * (dx_abs - dy_abs)
 
    @staticmethod
    def init_from(line, delim=','):
@@ -56,6 +64,7 @@ class Cell:
 
       return cells
 
+
 class Border:
    def __init__(self, w, h):
       self.w = w
@@ -63,7 +72,8 @@ class Border:
       self.rect = pg.Rect((0, 0, self.w * scale_pxl, self.h * scale_pxl))
 
    def create_grid(self):
-      grid = [[pg.Rect((0, 0, scale_pxl, scale_pxl)) for j in range(self.w)] for i in range(self.h)]
+      grid = [[pg.Rect((0, 0, scale_pxl, scale_pxl)) \
+               for j in range(self.w)] for i in range(self.h)]
       return grid
 
    def display(self, surface, grid, color):
@@ -91,6 +101,7 @@ class Border:
 
       return new_border
 
+
 class Obstacle:
    def __init__(self, cells):
       self.cells = cells
@@ -114,6 +125,7 @@ class Obstacle:
    
       return new_obstacle
 
+
 class Map:
    def __init__(self):
       self.border = None
@@ -125,7 +137,7 @@ class Map:
       self.S.display(surface, grid, pg.Color('steelblue'))
       self.G.display(surface, grid, pg.Color('tomato'))
       for e in self.O:
-         e.display(surface, grid, pg.Color('beige'))
+         e.display(surface, grid, pg.Color('gainsboro'))
 
    def load(self, path):
       try:
