@@ -1,4 +1,5 @@
 import pygame as pg
+import pygame.gfxdraw as pxl
 from pygame.locals import *
 from ext.eztext import Input as TextHolder
 

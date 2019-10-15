@@ -1,6 +1,8 @@
 from math import ceil
 import pygame as pg
 
+scale_pxl = 15
+
 class Cell:
    def __init__(self, r, c):
       self.r = r
@@ -26,10 +28,21 @@ class Border:
    def __init__(self, w, h):
       self.w = w
       self.h = h
-      self.rect = pg.Rect((0, 0, self.w, self.h))
+      self.rect = pg.Rect((0, 0, self.w * scale_pxl, self.h * scale_pxl))
 
-   def display(self, surface):
-      pg.draw.rect(surface, pg.Color('lavender'), self.rect, 1)
+   def pool_grid(self):
+      grid = [[pg.Rect((0, 0, scale_pxl, scale_pxl)) for j in range(self.w)] for i in range(self.h)]
+      return grid
+
+   def display(self, surface, grid):
+      self.rect.center = surface.get_rect().center
+      pg.draw.rect(surface, pg.Color('mediumseagreen'), self.rect, 2)
+
+      for i in range(self.h):
+         for j in range(self.w):
+            grid[i][j].x = self.rect.x + scale_pxl * j
+            grid[i][j].y = self.rect.y + scale_pxl * i
+            pg.draw.rect(surface, pg.Color('mediumseagreen'), grid[i][j], 1)            
 
    def get_size(self):
       return (0, 0, self.w, self.h)
@@ -68,8 +81,9 @@ class Map:
       self.S = self.G = None
       self.O = []
 
-   def display(self, surface):
-      self.border.display(surface)
+   def display(self, surface, grid):
+      self.border.display(surface, grid)
+
 
    def load(self, path):
       try:
@@ -80,6 +94,7 @@ class Map:
 
       try:
          self.border = Border.init_from(map_f.readline().rstrip('\n'))
+         grid = self.border.pool_grid()
          self.S, self.G = tuple(Cell.init_from(map_f.readline(). \
                                                rstrip('\n')))
          len_O = int(map_f.readline().rstrip('\n'))
@@ -91,4 +106,4 @@ class Map:
       
       map_f.close()
       print('Successfully load map from \'{}\''.format(path))
-      return self.border.get_size()
+      return self.border.get_size(), grid
