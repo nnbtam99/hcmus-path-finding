@@ -4,9 +4,41 @@ import pygame as pg
 scale_pxl = 15
 
 class Cell:
-   def __init__(self, r, c):
-      self.r = r
-      self.c = c
+   def __init__(self, x, y):
+      self.x = x
+      self.y = y
+
+   def display(self, surface, grid, color):
+      surface.fill(color, grid[self.y][self.x])
+
+   @staticmethod
+   def draw_line(cell_a, cell_b, surface, grid, color):
+      dx, dy = cell_a.x - cell_b.x, cell_a.y - cell_b.y
+      dx_abs, dy_abs = abs(dx), abs(dy)
+      px, py = 2 * dy_abs - dx_abs, 2 * dx_abs - dy_abs
+
+      if dx_abs > dy_abs:
+         if dx < 0:
+            xs, xe, y = cell_a.x, cell_b.x, cell_a.y
+         else:
+            xs, xe, y = cell_b.x, cell_a.x, cell_b.y
+
+         while xs <= xe:
+            surface.fill(color, grid[xs][y])
+            xs += 1
+            px = (px + 2 * dy_abs if px < 0 else \
+                  px + 2 * (dy_abs - dx_abs))
+      else:
+         if dy < 0:
+            ys, ye, x = cell_a.y, cell_b.y, cell_a.x
+         else:
+            ys, ye, x = cell_b.y, cell_a.y, cell_b.x
+
+         while ys <= ye:
+            surface.fill(color, grid[x][ys])
+            ys += 1
+            py = (py + 2 * dx_abs if py < 0 else \
+                  py + 2 * (dx_abs - dy_abs))
 
    @staticmethod
    def init_from(line, delim=','):
@@ -15,8 +47,8 @@ class Cell:
          lst_coor = list(map(int, line.split(delim)))
          n_coors = int(ceil(len(lst_coor) / 2))
          for i in range(n_coors):
-            r, c = lst_coor[i * 2], lst_coor[i * 2 + 1]
-            cells.append(Cell(r, c))
+            x, y = lst_coor[i * 2], lst_coor[i * 2 + 1]
+            cells.append(Cell(x, y))
       except:
          raise Exception('Fail to init cell from line \'{}\'' \
                         .format(line))
@@ -30,19 +62,19 @@ class Border:
       self.h = h
       self.rect = pg.Rect((0, 0, self.w * scale_pxl, self.h * scale_pxl))
 
-   def pool_grid(self):
+   def create_grid(self):
       grid = [[pg.Rect((0, 0, scale_pxl, scale_pxl)) for j in range(self.w)] for i in range(self.h)]
       return grid
 
-   def display(self, surface, grid):
+   def display(self, surface, grid, color):
       self.rect.center = surface.get_rect().center
-      pg.draw.rect(surface, pg.Color('mediumseagreen'), self.rect, 2)
+      pg.draw.rect(surface, color, self.rect, 2)
 
       for i in range(self.h):
          for j in range(self.w):
             grid[i][j].x = self.rect.x + scale_pxl * j
             grid[i][j].y = self.rect.y + scale_pxl * i
-            pg.draw.rect(surface, pg.Color('mediumseagreen'), grid[i][j], 1)            
+            pg.draw.rect(surface, color, grid[i][j], 1)            
 
    def get_size(self):
       return (0, 0, self.w, self.h)
@@ -63,6 +95,13 @@ class Obstacle:
    def __init__(self, cells):
       self.cells = cells
 
+   def display(self, surface, grid, color):
+      len_O = len(self.cells)
+      for i in range(len_O + 1):
+         Cell.draw_line(self.cells[i % len_O], \
+                        self.cells[(i + 1) % len_O], \
+                        surface, grid, color)
+
    @staticmethod
    def init_from(line, delim=','):
       try:
@@ -82,8 +121,11 @@ class Map:
       self.O = []
 
    def display(self, surface, grid):
-      self.border.display(surface, grid)
-
+      self.border.display(surface, grid, pg.Color('lightsteelblue'))
+      self.S.display(surface, grid, pg.Color('steelblue'))
+      self.G.display(surface, grid, pg.Color('tomato'))
+      for e in self.O:
+         e.display(surface, grid, pg.Color('beige'))
 
    def load(self, path):
       try:
@@ -94,7 +136,6 @@ class Map:
 
       try:
          self.border = Border.init_from(map_f.readline().rstrip('\n'))
-         grid = self.border.pool_grid()
          self.S, self.G = tuple(Cell.init_from(map_f.readline(). \
                                                rstrip('\n')))
          len_O = int(map_f.readline().rstrip('\n'))
@@ -105,5 +146,6 @@ class Map:
          raise Exception('MapError: {}'.format(e))
       
       map_f.close()
+      grid = self.border.create_grid()
       print('Successfully load map from \'{}\''.format(path))
       return self.border.get_size(), grid

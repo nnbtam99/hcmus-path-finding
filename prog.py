@@ -15,6 +15,7 @@ if state == 1:
       world.display()
       while True:
          continue
+
    except Exception as e:
       print(str(e))
       exit()
