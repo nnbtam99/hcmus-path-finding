@@ -1,6 +1,6 @@
 import pygame as pg
 from pygame.locals import *
-from lib.eztext import Input as TextHolder
+from ext.eztext import Input as TextHolder
 
 pg.init()
 pg.font.init()
