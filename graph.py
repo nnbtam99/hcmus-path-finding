@@ -9,11 +9,11 @@ class Cell:
       self.x = x
       self.y = y
 
-   def display(self, surface, grid, color):
+   def render(self, surface, grid, color):
       surface.fill(color, grid[self.y][self.x])
 
    @staticmethod
-   def draw_line(cell_a, cell_b, surface, grid, color):
+   def render_line(cell_a, cell_b, surface, grid, obs, color):
       # Bresenham's line drawing algorithm
       dx, dy = cell_a.x - cell_b.x, cell_a.y - cell_b.y
       dx_abs, dy_abs = abs(dx), abs(dy)
@@ -27,6 +27,7 @@ class Cell:
 
          while xs <= xe:
             surface.fill(color, grid[xs][y])
+            obs[xs][y] = True
             xs += 1
             if px < 0:
                px += 2 * dy_abs
@@ -76,7 +77,7 @@ class Border:
                for j in range(self.w)] for i in range(self.h)]
       return grid
 
-   def display(self, surface, grid, color):
+   def render(self, surface, grid, color):
       self.rect.center = surface.get_rect().center
       pg.draw.rect(surface, color, self.rect, 2)
 
@@ -106,12 +107,12 @@ class Obstacle:
    def __init__(self, cells):
       self.cells = cells
 
-   def display(self, surface, grid, color):
+   def render(self, surface, grid, visited, color):
       len_O = len(self.cells)
       for i in range(len_O + 1):
-         Cell.draw_line(self.cells[i % len_O], \
-                        self.cells[(i + 1) % len_O], \
-                        surface, grid, color)
+         Cell.render_line(self.cells[i % len_O], \
+                          self.cells[(i + 1) % len_O], \
+                          surface, grid, visited, color)
 
    @staticmethod
    def init_from(line, delim=','):
@@ -132,12 +133,16 @@ class Map:
       self.S = self.G = None
       self.O = []
 
-   def display(self, surface, grid):
-      self.border.display(surface, grid, pg.Color('lightsteelblue'))
-      self.S.display(surface, grid, pg.Color('steelblue'))
-      self.G.display(surface, grid, pg.Color('tomato'))
+   def render(self, surface, grid):
+      obs = [[False] * len(grid[0]) for _ in range(len(grid))]
+
+      self.border.render(surface, grid, pg.Color('lightsteelblue'))
+      self.S.render(surface, grid, pg.Color('steelblue'))
+      self.G.render(surface, grid, pg.Color('tomato'))
       for e in self.O:
-         e.display(surface, grid, pg.Color('gainsboro'))
+         e.render(surface, grid, obs, pg.Color('gainsboro'))
+
+      return obs
 
    def load(self, path):
       try:

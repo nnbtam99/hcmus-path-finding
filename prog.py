@@ -12,9 +12,7 @@ if state == 1:
       world_map = graph.Map()
       world_size, world_grid = world_map.load(path)
       world = world.World(world_map, world_grid, world_size)
-      world.display()
-      while True:
-         continue
+      world.run()
 
    except Exception as e:
       print(str(e))

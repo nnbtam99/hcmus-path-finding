@@ -20,12 +20,12 @@ class InputDialog:
          self.title = title
          self.inp = None
          self.surface = None
-         self.prompt(title_font, input_font)
+         self.render(title_font, input_font)
       except Exception as e:
          raise(Exception(str(e)))
          return
 
-   def prompt(self, title_font, input_font):
+   def render(self, title_font, input_font):
       pg.display.set_caption(self.name)
 
       # Draw dialog      
