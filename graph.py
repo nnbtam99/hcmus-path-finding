@@ -9,12 +9,15 @@ class Cell:
       self.x = x
       self.y = y
 
+
+   # Color a cell to surface on grid
    def render(self, surface, grid, color):
       surface.fill(color, grid[self.y][self.x])
 
+
+   # Bresenham's line drawing algorithm
    @staticmethod
    def render_line(cell_a, cell_b, surface, grid, obs, color):
-      # Bresenham's line drawing algorithm
       dx, dy = cell_a.x - cell_b.x, cell_a.y - cell_b.y
       dx_abs, dy_abs = abs(dx), abs(dy)
       px, py = 2 * dy_abs - dx_abs, 2 * dx_abs - dy_abs
@@ -50,6 +53,8 @@ class Cell:
                x += (1 if dx * dy > 0 else -1)
                py += 2 * (dx_abs - dy_abs)
 
+
+   # Parse cell from line
    @staticmethod
    def init_from(line, delim=','):
       cells = []
@@ -60,7 +65,7 @@ class Cell:
             x, y = lst_coor[i * 2], lst_coor[i * 2 + 1]
             cells.append(Cell(x, y))
       except:
-         raise Exception('Fail to init cell from line \'{}\'' \
+         raise Exception('MAP: Fail to init cell from line \'{}\'' \
                         .format(line))
          return
 
@@ -73,11 +78,14 @@ class Border:
       self.h = h
       self.rect = pg.Rect((0, 0, self.w * scale_pxl, self.h * scale_pxl))
 
+
    def create_grid(self):
       grid = [[pg.Rect((0, 0, scale_pxl, scale_pxl)) \
                for j in range(self.w)] for i in range(self.h)]
       return grid
 
+
+   # Draw grid of cells within border
    def render(self, surface, grid, color):
       self.rect.center = surface.get_rect().center
       pg.draw.rect(surface, color, self.rect, 2)
@@ -88,16 +96,19 @@ class Border:
             grid[i][j].y = self.rect.y + scale_pxl * i
             pg.draw.rect(surface, color, grid[i][j], 1)            
 
+
    def get_size(self):
       return (0, 0, self.w, self.h)
 
+
+   # Parse border from line
    @staticmethod
    def init_from(line, delim=','): 
       try:
          w, h = map(int, line.split(delim))
          new_border = Border(w, h)
       except:
-         raise Exception('Fail to init border from line \'{}\'' \
+         raise Exception('MAP: Fail to init border from line \'{}\'' \
                         .format(line))
          return
 
@@ -108,6 +119,7 @@ class Obstacle:
    def __init__(self, cells):
       self.cells = cells
 
+
    def render(self, surface, grid, visited, color):
       len_O = len(self.cells)
       for i in range(len_O + 1):
@@ -115,13 +127,15 @@ class Obstacle:
                           self.cells[(i + 1) % len_O], \
                           surface, grid, visited, color)
 
+
+   # Parse obstacle from line
    @staticmethod
    def init_from(line, delim=','):
       try:
          cells = Cell.init_from(line, delim)
          new_obstacle = Obstacle(cells)
       except:
-         raise Exception('Fail to init obstacle from line \'{}\'' \
+         raise Exception('MAP: Fail to init obstacle from line \'{}\'' \
                          .format(line))
          return
    
@@ -134,6 +148,8 @@ class Map:
       self.S = self.G = None
       self.O = []
 
+   # Draw a map, which includes draw grid,
+   # starting, ending node and obstacles
    def render(self, surface, grid):
       obs = [[False] * len(grid[0]) for _ in range(len(grid))]
 
@@ -145,11 +161,12 @@ class Map:
 
       return obs
 
+   # Load a map from file
    def load(self, path):
       try:
          map_f = open(path, 'r')
       except:
-         raise Exception('Fail to init map from \'{}\''.format(path))
+         raise Exception('MAP: Fail to init map from \'{}\''.format(path))
          return
 
       try:
@@ -161,9 +178,9 @@ class Map:
             self.O.append(Obstacle.init_from(map_f.readline(). \
                                              rstrip('\n')))
       except Exception as e:
-         raise Exception('MapError: {}'.format(e))
+         raise Exception('MAP: {}'.format(e))
       
       map_f.close()
       grid = self.border.create_grid()
-      print('Successfully load map from \'{}\''.format(path))
+      print('MAP: Successfully load map from \'{}\''.format(path))
       return self.border.get_size(), grid
