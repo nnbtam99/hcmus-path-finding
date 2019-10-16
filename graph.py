@@ -26,8 +26,8 @@ class Cell:
             xs, xe, y = cell_b.x, cell_a.x, cell_b.y
 
          while xs <= xe:
-            surface.fill(color, grid[xs][y])
-            obs[xs][y] = True
+            surface.fill(color, grid[y][xs])
+            obs[y][xs] = True
             xs += 1
             if px < 0:
                px += 2 * dy_abs
@@ -41,7 +41,8 @@ class Cell:
             ys, ye, x = cell_b.y, cell_a.y, cell_b.x
 
          while ys <= ye:
-            surface.fill(color, grid[x][ys])
+            surface.fill(color, grid[ys][x])
+            obs[ys][x] = True
             ys += 1
             if py < 0:
                py += 2 * dx_abs
@@ -140,7 +141,7 @@ class Map:
       self.S.render(surface, grid, pg.Color('steelblue'))
       self.G.render(surface, grid, pg.Color('tomato'))
       for e in self.O:
-         e.render(surface, grid, obs, pg.Color('gainsboro'))
+         e.render(surface, grid, obs, pg.Color('lightgray'))
 
       return obs
 
