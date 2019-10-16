@@ -149,7 +149,7 @@ class Map:
       self.O = []
 
    # Draw a map, which includes draw grid,
-   # starting, ending node and obstacles
+   # start node, end node and obstacles
    def render(self, surface, grid):
       obs = [[False] * len(grid[0]) for _ in range(len(grid))]
 
