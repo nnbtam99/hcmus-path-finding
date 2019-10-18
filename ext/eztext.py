@@ -62,6 +62,9 @@ class Input:
    def get_text(self):
       return self.value
 
+   def reset_text(self):
+      self.value = ''
+
    def get_rect(self):
       return self.text_rect
 

@@ -101,8 +101,8 @@ class Border:
          for j in range(self.w):
             grid[i][j].x = self.rect.x + scale_pxl * j
             grid[i][j].y = self.rect.y + scale_pxl * i
+            surface.fill(pg.Color('white'), grid[i][j])
             pg.draw.rect(surface, color, grid[i][j], 1)            
-
 
    def get_size(self):
       return (0, 0, self.w, self.h)
