@@ -120,8 +120,8 @@ class World:
       self.display()
       # self.find_path_SA()
       # self.find_path_Dijsktra()
-      self.find_path_GreedyBFS()
-      # self.find_path_A_Star()
+      # self.find_path_GreedyBFS()
+      self.find_path_A_Star()
 
       while self.done == 0:
          events = pg.event.get()

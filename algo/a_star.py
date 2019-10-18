@@ -3,9 +3,15 @@ sys.path.append('../')
 from graph import Cell
 import queue
 
+INF = int(1e9)
+
 # 8 directions
 dx = [0, 0, 1, -1, 1, 1, -1, -1]
 dy = [1, -1, 0, 0, 1, -1, 1, -1]
+
+# horizontal & vertical ==> weight = 1
+# diagonal ==> weight = 1.5
+weight = [1, 1, 1, 1, 1.5, 1.5, 1.5, 1.5]
 
 def heuristic(a, b):
     # On a square grid that allows 8 directions of movement
@@ -14,25 +20,26 @@ def heuristic(a, b):
     dy = abs(a.y - b.y)
     return (dx + dy) - min(dx, dy)
 
-def greedy_bfs(s, f, w, h, obs):
+def a_star(s, f, w, h, obs):
 
     '''
-    Greedy BFS algorithm uses heuristic function instead of cost.
-    h(x) --> heuristic function
+    A* algorithm combines Dijkstra and Greedy BFS
+    f(x) = g(x) + h(x); g(x) is cost function, h(x) is heuristic function
     '''
-
     # Result containers
-    visited  = [[False] * w for _ in range(h)]
     path    = [[-1] * w for _ in range(h)]
+    cost    = [[INF] * w for _ in range(h)]
     pq      = queue.PriorityQueue()
 
     # Mark cost at start node as 0
     # Mark previous node at start node as -2
+    cost[s.y][s.x] = 0
     path[s.y][s.x] = -2
 
     # Put start node to priority queue
     # Note: tuple format: (cost, Cell(x, y))
-    pq.put((heuristic(s, f), s))
+    # f(x) = g(x) + h(x)
+    pq.put((heuristic(s, f) + 0, s))
 
     while not pq.empty():
         u = pq.get()
@@ -47,17 +54,18 @@ def greedy_bfs(s, f, w, h, obs):
             # x, y are coordinates of neighbors
             x, y = u[1].x + dx[i], u[1].y + dy[i]
 
-            if x in range(w) and y in range(h) and not visited[y][x]:
-                visited[y][x] = True
-                
-                # Go to the node if it is not a part of obstacles
+            # Go to the node if it is not a part of obstacles
+            if x in range(w) and y in range(h):
                 if not obs[y][x]:
-                    path[y][x] = i
-                    priority = heuristic(Cell(x, y), f)
-                    pq.put((priority, Cell(x, y)))
+                # Update cost at neighbor if possible
+                    if (weight[i] + u[0]) < cost[y][x]:
+                        cost[y][x] = weight[i] + u[0] 
+                        path[y][x] = i
+                        priority = cost[y][x] + heuristic(Cell(x, y), f)
+                        pq.put((priority, Cell(x, y)))
                     
   # Return (has path, trace path container)
-    if visited[f.y][f.x]:
+    if cost[f.y][f.x] != INF:
        return True, path
     else:
        return False, None
