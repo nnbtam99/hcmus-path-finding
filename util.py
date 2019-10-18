@@ -50,7 +50,7 @@ class InputDialog:
       # Draw input box
       inp_size = inp_x, inp_y = outline_box_rect.x + 8, \
                                 outline_box_rect.y + 15
-      self.inp = TextHolder(x=inp_x, y=inp_y, maxlength=23, \
+      self.inp = TextHolder(x=inp_x, y=inp_y, maxlength=23, width=23, \
                             font=input_font, prompt='> ')
       self.inp.draw(self.surface)
       

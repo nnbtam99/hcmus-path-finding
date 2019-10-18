@@ -3,12 +3,12 @@ sys.path.append('../')
 from graph import Cell
 import queue
 
-# 8 directions
-dx = [0, 0, 1, -1, 1, 1, -1, -1]
-dy = [1, -1, 0, 0, 1, -1, 1, -1]
+# 4 directions
+dx = [0, 0, 1, -1]
+dy = [1, -1, 0, 0]
 
 def heuristic(a, b):
-    # On a square grid that allows 8 directions of movement
+    # On a square grid that allows 4 directions of movement
     # Use diagonal distance
     dx = abs(a.x - b.x)
     dy = abs(a.y - b.y)
@@ -61,8 +61,3 @@ def greedy_bfs(s, f, w, h, obs):
        return True, path
     else:
        return False, None
-
-
-
-
-    

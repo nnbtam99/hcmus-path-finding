@@ -27,18 +27,21 @@ class Input:
                            ['color', '(0,0,0)'], \
                            ['restricted', \
                            '\'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!"#$%&\\\'()*+,-./:;<=>?@[\]^_`{|}~\''], \
-                           ['maxlength', '-1'], ['prompt', '\'\''])
+                           ['maxlength', '-1'], \
+                           ['width', '0'], \
+                           ['prompt', '\'\''])
       self.x = self.options.x;
       self.y = self.options.y
       self.font = self.options.font
       self.color = self.options.color
       self.restricted = self.options.restricted
       self.maxlength = self.options.maxlength
+      self.width = self.options.width
       self.prompt = self.options.prompt;
       self.value = ''
       self.shifted = False
-      self.text_rect = self.font.render('@' * (self.maxlength - 3), False, \
-                       pygame.Color('white')).get_rect()
+      self.text_rect = self.font.render('@' * (self.width - 3), \
+                           False, pygame.Color('white')).get_rect()
       self.text_rect.x = self.x
       self.text_rect.y = self.y
 
@@ -53,7 +56,7 @@ class Input:
 
    def draw(self, surface):
       """ Draw the text input to a surface """
-      text = self.font.render(self.prompt + self.value, 1, self.color)
+      text = self.font.render(self.prompt + self.value, True, self.color)
       surface.blit(text, (self.x, self.y))
 
    def get_text(self):

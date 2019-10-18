@@ -2,15 +2,11 @@ import pygame as pg
 from pygame.locals import *
 from algo.bfs import bfs
 from algo.dfs import dfs
-<<<<<<< HEAD
-=======
 from algo.dijkstra import dijkstra
 from algo.greedy_bfs import greedy_bfs
 from algo.a_star import a_star
-
->>>>>>> ca4a79b0c4c146bb5b97a1d5a9b5049280553af7
 from algo.sa import sa_tsp
-
+from ext.eztext import Input as TextHolder
 
 font = pg.font.Font('./static/font/nunito.ttf', 13)
 font_bold = pg.font.Font('./static/font/nunito-bold.ttf', 14)
@@ -21,6 +17,7 @@ class World:
       self.map       = world_map
       self.size      = size
       self.grid      = grid
+      self.inp       = None
       self.obs       = None
       self.surface   = None
 
@@ -35,7 +32,7 @@ class World:
       # Render map and get a trace array of obstacles
       self.obs       = self.map.render(self.surface, self.grid)
 
-      # Display options
+      # Display algorithm options
       title_text           = 'Algorithms:'
       title_box            = font_bold.render(title_text, True, \
                                               pg.Color('darkred'))
@@ -48,15 +45,27 @@ class World:
 
       prev_y               = title_rect.y + 8
       opt_text_lst         = ['1. BFS', '2. DFS', '3. Dijkstra', \
-                              '4. Greedy BFS', '5. A*', '6. SA']
+                              '4. Greedy BFS', '5. A*', \
+                              '6. Simulated Annealing']
 
       for e in opt_text_lst:
          opt_box           = font.render(e, True, pg.Color('darkred'))
          opt_rect          = opt_box.get_rect()
-         opt_rect.x        = title_rect.x
+         opt_rect.x        = title_rect.x + 20
          opt_rect.y        = prev_y + title_rect.h
          prev_y            = opt_rect.y
          self.surface.blit(opt_box, opt_rect)      
+
+      outline_box_size = (title_rect.x, prev_y + 30, 200, 25)
+      outline_box_rect = pg.Rect(outline_box_size)
+      pg.draw.rect(self.surface, pg.Color('darkred'), outline_box_rect, 1)
+      
+      inp_size = inp_x, inp_y = outline_box_rect.x + 8, \
+                                outline_box_rect.y + 5
+      self.inp = TextHolder(x=inp_x, y=inp_y, maxlength=1, width=21, \
+                            font=font, restricted='123456', \
+                            prompt='> Your choice: ')
+      self.inp.draw(self.surface)
 
       # Update changes
       pg.display.update()
@@ -99,7 +108,6 @@ class World:
       print('PATH: Finish tracing')
 
 
-<<<<<<< HEAD
    def find_path(self, algo):
       has_path, path = False, None
 
@@ -109,71 +117,30 @@ class World:
       elif algo == 'DFS':
          has_path, path = dfs(self.map.S, self.map.G, self.map.border.w, \
                               self.map.border.h, self.obs)
-      elif algo == 'SA':
-         sa_tsp(self.map.S, self.map.G, \
-=======
-   def find_path_DFS(self):
-      has_path, path = dfs(self.map.S, self.map.G, \
+      elif algo == 'GreedyBFS':
+         has_path, path = greedy_bfs(self.map.S, self.map.G, \
                            self.map.border.w, self.map.border.h, self.obs)
-      if not has_path:
-         print('PATH: No path found')
-      else:
-         print('PATH: Tracing...')
-         self.trace_path(path, pg.Color('skyblue'))
-         print('PATH: Finish tracing path.')
-
-   def find_path_GreedyBFS(self):
-      has_path, path = greedy_bfs(self.map.S, self.map.G, \
+      elif algo == 'Dijkstra':
+         has_path, path = dijkstra(self.map.S, self.map.G, \
                            self.map.border.w, self.map.border.h, self.obs)
-      if not has_path:
-         print('PATH: No path found')
-      else:
-         print('PATH: Tracing...')
-         self.trace_path(path, pg.Color('skyblue'))
-         print('PATH: Finish tracing path.')
-
-   def find_path_Dijsktra(self):
-      has_path, path = dijkstra(self.map.S, self.map.G, \
+      elif algo == 'AStar':
+         has_path, path = a_star(self.map.S, self.map.G, \
                            self.map.border.w, self.map.border.h, self.obs)
-      if not has_path:
-         print('PATH: No path found')
-      else:
-         print('PATH: Tracing...')
-         self.trace_path(path, pg.Color('skyblue'))
-         print('PATH: Finish tracing path.')
-   
-   def find_path_A_Star(self):
-      has_path, path = a_star(self.map.S, self.map.G, \
-                           self.map.border.w, self.map.border.h, self.obs)
-      if not has_path:
-         print('PATH: No path found')
-      else:
-         print('PATH: Tracing...')
-         self.trace_path(path, pg.Color('skyblue'))
-         print('PATH: Finish tracing path.')
-
-   def find_path_SA(self):
-      sa_tsp(self.map.S, self.map.G, \
->>>>>>> ca4a79b0c4c146bb5b97a1d5a9b5049280553af7
-             self.map.border.w, self.map.border.h, \
-             self.obs, self.map.stops)
 
       self.trace_path(has_path, path, pg.Color('skyblue'))
 
    def run(self):
       self.display()
-<<<<<<< HEAD
       self.find_path('DFS')
-=======
-      # self.find_path_SA()
-      # self.find_path_Dijsktra()
-      # self.find_path_GreedyBFS()
-      self.find_path_A_Star()
->>>>>>> ca4a79b0c4c146bb5b97a1d5a9b5049280553af7
 
       while self.done == 0:
          events = pg.event.get()
+         self.inp.update(events)
+         self.surface.fill(pg.Color('white'), self.inp.get_rect())
+         self.inp.draw(self.surface)
          for e in events:
             if e.type == pg.QUIT:
                self.done = 1
                continue
+
+         pg.display.flip()
