@@ -7,8 +7,11 @@ scale_pxl = 15
 class Cell:
    def __init__(self, x, y):
       self.x = x
-      self.y = y
+      self.y = y 
 
+   # Cell less than or equal <= operator
+   def __lt__(self, other):
+      return self.x < other.x
 
    # Color a cell to surface on grid
    def render(self, surface, grid, color):
