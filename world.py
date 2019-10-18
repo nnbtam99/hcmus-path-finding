@@ -1,5 +1,6 @@
 import pygame as pg
 from algo.bfs import bfs
+from algo.sa import sa_tsp
 
 class World:
    def __init__(self, world_map, grid, size):
@@ -65,9 +66,14 @@ class World:
          self.trace_path(path, pg.Color('skyblue'))
          print('PATH: Finish tracing path.')
 
+   def find_path_SA(self):
+      sa_tsp(self.map.S, self.map.G, \
+             self.map.border.w, self.map.border.h, \
+             self.obs, self.map.stops)
+
    def run(self):
       self.display()
-      self.find_path_BFS()
+      self.find_path_SA()
 
       while self.done == 0:
          events = pg.event.get()
