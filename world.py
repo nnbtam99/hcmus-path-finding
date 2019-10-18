@@ -2,6 +2,13 @@ import pygame as pg
 from pygame.locals import *
 from algo.bfs import bfs
 from algo.dfs import dfs
+<<<<<<< HEAD
+=======
+from algo.dijkstra import dijkstra
+from algo.greedy_bfs import greedy_bfs
+from algo.a_star import a_star
+
+>>>>>>> ca4a79b0c4c146bb5b97a1d5a9b5049280553af7
 from algo.sa import sa_tsp
 
 
@@ -92,6 +99,7 @@ class World:
       print('PATH: Finish tracing')
 
 
+<<<<<<< HEAD
    def find_path(self, algo):
       has_path, path = False, None
 
@@ -103,6 +111,50 @@ class World:
                               self.map.border.h, self.obs)
       elif algo == 'SA':
          sa_tsp(self.map.S, self.map.G, \
+=======
+   def find_path_DFS(self):
+      has_path, path = dfs(self.map.S, self.map.G, \
+                           self.map.border.w, self.map.border.h, self.obs)
+      if not has_path:
+         print('PATH: No path found')
+      else:
+         print('PATH: Tracing...')
+         self.trace_path(path, pg.Color('skyblue'))
+         print('PATH: Finish tracing path.')
+
+   def find_path_GreedyBFS(self):
+      has_path, path = greedy_bfs(self.map.S, self.map.G, \
+                           self.map.border.w, self.map.border.h, self.obs)
+      if not has_path:
+         print('PATH: No path found')
+      else:
+         print('PATH: Tracing...')
+         self.trace_path(path, pg.Color('skyblue'))
+         print('PATH: Finish tracing path.')
+
+   def find_path_Dijsktra(self):
+      has_path, path = dijkstra(self.map.S, self.map.G, \
+                           self.map.border.w, self.map.border.h, self.obs)
+      if not has_path:
+         print('PATH: No path found')
+      else:
+         print('PATH: Tracing...')
+         self.trace_path(path, pg.Color('skyblue'))
+         print('PATH: Finish tracing path.')
+   
+   def find_path_A_Star(self):
+      has_path, path = a_star(self.map.S, self.map.G, \
+                           self.map.border.w, self.map.border.h, self.obs)
+      if not has_path:
+         print('PATH: No path found')
+      else:
+         print('PATH: Tracing...')
+         self.trace_path(path, pg.Color('skyblue'))
+         print('PATH: Finish tracing path.')
+
+   def find_path_SA(self):
+      sa_tsp(self.map.S, self.map.G, \
+>>>>>>> ca4a79b0c4c146bb5b97a1d5a9b5049280553af7
              self.map.border.w, self.map.border.h, \
              self.obs, self.map.stops)
 
@@ -110,7 +162,14 @@ class World:
 
    def run(self):
       self.display()
+<<<<<<< HEAD
       self.find_path('DFS')
+=======
+      # self.find_path_SA()
+      # self.find_path_Dijsktra()
+      # self.find_path_GreedyBFS()
+      self.find_path_A_Star()
+>>>>>>> ca4a79b0c4c146bb5b97a1d5a9b5049280553af7
 
       while self.done == 0:
          events = pg.event.get()

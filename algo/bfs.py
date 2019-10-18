@@ -30,11 +30,11 @@ def bfs(s, f, w, h, obs):
       if u.x == f.x and u.y == f.y:
          break
       
-      # Explore every adjancent nodes
+      # Explore every adjacent nodes
       for i in range(len(dx)):
          x, y = u.x + dx[i], u.y + dy[i]
 
-         # Check if the node we tends to explore is a valid node
+         # Check if the node we tend to explore is a valid node
          # and whether it has been explored
          if x in range(w) and y in range(h) and not visited[y][x]:
             visited[y][x] = True
