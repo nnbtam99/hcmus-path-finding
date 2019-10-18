@@ -91,6 +91,7 @@ class Border:
    # Draw grid of cells within border
    def render(self, surface, grid, color):
       self.rect.center = surface.get_rect().center
+      self.rect.x = surface.get_rect().w * 0.1
       pg.draw.rect(surface, color, self.rect, 2)
 
       for i in range(self.h):

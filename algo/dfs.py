@@ -7,7 +7,7 @@ from collections import deque
 dx = [0, 0, 1, -1]
 dy = [1, -1, 0, 0]
 
-def bfs(s, f, w, h, obs):
+def dfs(s, f, w, h, obs):
 
    # Result containers 
    visited  = [[False] * w for _ in range(h)]
@@ -24,7 +24,7 @@ def bfs(s, f, w, h, obs):
    path[s.y][s.x]    = -2
  
    while q:
-      u = q.popleft()
+      u = q.pop()
      
       # Stop as soon as we reach the end node
       if u.x == f.x and u.y == f.y:

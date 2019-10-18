@@ -1,5 +1,4 @@
 import pygame as pg
-import pygame.gfxdraw as pxl
 from pygame.locals import *
 from ext.eztext import Input as TextHolder
 
@@ -41,7 +40,7 @@ class InputDialog:
                    outline_box_rect, 1)
 
       # Draw title
-      title_box      = title_font.render(self.title, False, \
+      title_box      = title_font.render(self.title, True, \
                                          pg.Color('black'))
       title_rect     = title_box.get_rect()
       title_rect.x   = outline_box_rect.x + 8
