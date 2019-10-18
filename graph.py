@@ -3,7 +3,6 @@ import pygame as pg
 
 scale_pxl = 15
 
-
 class Cell:
    def __init__(self, x, y):
       self.x = x
@@ -17,6 +16,10 @@ class Cell:
    def render(self, surface, grid, color):
       surface.fill(color, grid[self.y][self.x])
 
+   @staticmethod
+   def distance(self, other):
+      return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
+   
 
    # Bresenham's line drawing algorithm
    @staticmethod
@@ -149,6 +152,7 @@ class Map:
    def __init__(self):
       self.border = None
       self.S = self.G = None
+      self.stops = []
       self.O = []
 
    # Draw a map, which includes draw grid,
@@ -159,6 +163,8 @@ class Map:
       self.border.render(surface, grid, pg.Color('lightsteelblue'))
       self.S.render(surface, grid, pg.Color('steelblue'))
       self.G.render(surface, grid, pg.Color('tomato'))
+      for e in self.stops:
+         e.render(surface, grid, pg.Color('khaki'))
       for e in self.O:
          e.render(surface, grid, obs, pg.Color('lightgray'))
 
@@ -174,8 +180,9 @@ class Map:
 
       try:
          self.border = Border.init_from(map_f.readline().rstrip('\n'))
-         self.S, self.G = tuple(Cell.init_from(map_f.readline(). \
-                                               rstrip('\n')))
+         self.S, self.G, *self.stops = \
+                  tuple(Cell.init_from(map_f.readline().rstrip('\n')))
+
          len_O = int(map_f.readline().rstrip('\n'))
          for _ in range(len_O):
             self.O.append(Obstacle.init_from(map_f.readline(). \

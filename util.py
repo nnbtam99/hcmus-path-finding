@@ -14,12 +14,12 @@ class InputDialog:
                 title_font=default_title_font, \
                 input_font=default_input_font):
       try:
-         self.done = 0
-         self.name = name
-         self.size = size
-         self.title = title
-         self.inp = None
-         self.surface = None
+         self.done      = 0
+         self.name      = name
+         self.size      = size
+         self.title     = title
+         self.inp       = None
+         self.surface   = None
          self.render(title_font, input_font)
       except Exception as e:
          raise(Exception(str(e)))
@@ -29,8 +29,8 @@ class InputDialog:
       pg.display.set_caption(self.name)
 
       # Draw dialog      
-      dialog_rect = pg.Rect(self.size)
-      self.surface = pg.display.set_mode((dialog_rect.w, dialog_rect.h))
+      dialog_rect    = pg.Rect(self.size)
+      self.surface   = pg.display.set_mode((dialog_rect.w, dialog_rect.h))
       self.surface.fill(pg.Color('white'))
 
       # Draw box outline
@@ -41,10 +41,11 @@ class InputDialog:
                    outline_box_rect, 1)
 
       # Draw title
-      title_box = title_font.render(self.title, False, pg.Color('black'))
-      title_rect = title_box.get_rect()
-      title_rect.x = outline_box_rect.x + 8
-      title_rect.y = outline_box_rect.y - 22
+      title_box      = title_font.render(self.title, False, \
+                                         pg.Color('black'))
+      title_rect     = title_box.get_rect()
+      title_rect.x   = outline_box_rect.x + 8
+      title_rect.y   = outline_box_rect.y - 22
       self.surface.blit(title_box, title_rect)
 
       # Draw input box

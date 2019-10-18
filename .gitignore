@@ -108,5 +108,4 @@ venv.bak/
 
 # temp for unit debugging
 greedy.py
-dfs.py
 a_star.py
