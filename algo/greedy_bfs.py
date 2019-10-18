@@ -2,32 +2,35 @@ import sys
 sys.path.append('../')
 from graph import Cell
 import queue
-
-INF = int(1e9)
+import math
 
 # 8 directions
 dx = [0, 0, 1, -1, 1, 1, -1, -1]
 dy = [1, -1, 0, 0, 1, -1, 1, -1]
 
-# horizontal & vertical ==> weight = 1
-# diagonal ==> weight = 1.5
-weight = [1, 1, 1, 1, 1.5, 1.5, 1.5, 1.5]
+def heuristic(a, b):
+    # Manhattan's distance
+    return abs(a.x - b.x) + abs(a.y - b.y)
 
-def dijkstra(s, f, w, h, obs):
+def greedy_bfs(s, f, w, h, obs):
+
+    '''
+    Greedy BFS algorithm uses heuristic function instead of cost.
+    h(x) --> heuristic function
+    '''
 
     # Result containers
+    visited  = [[False] * w for _ in range(h)]
     path    = [[-1] * w for _ in range(h)]
-    cost    = [[INF] * w for _ in range(h)]
     pq      = queue.PriorityQueue()
 
     # Mark cost at start node as 0
     # Mark previous node at start node as -2
-    cost[s.y][s.x] = 0
     path[s.y][s.x] = -2
 
     # Put start node to priority queue
     # Note: tuple format: (cost, Cell(x, y))
-    pq.put((cost[s.y][s.x], s))
+    pq.put((heuristic(s, f), s))
 
     while not pq.empty():
         u = pq.get()
@@ -35,24 +38,29 @@ def dijkstra(s, f, w, h, obs):
         # Stop as soon as we reach the end node
         if u[1].x == f.x and u[1].y == f.y:
             break
+
         # Explore every adjacent nodes
         for i in range(len(dx)):
 
             # x, y are coordinates of neighbors
             x, y = u[1].x + dx[i], u[1].y + dy[i]
 
-            # Go to the node if it is not a part of obstacles
-            if x in range(w) and y in range(h):
+            if x in range(w) and y in range(h) and not visited[y][x]:
+                visited[y][x] = True
+                
+                # Go to the node if it is not a part of obstacles
                 if not obs[y][x]:
-                # Update cost at neighbor if possible
-                    if (weight[i] + u[0]) < cost[y][x]:
-                        cost[y][x] = weight[i] + u[0] 
-                        path[y][x] = i
-                        pq.put((cost[y][x], Cell(x, y)))
-                                
-                                
+                    path[y][x] = i
+                    priority = heuristic(Cell(x, y), f)
+                    pq.put((priority, Cell(x, y)))
+                    
   # Return (has path, trace path container)
-    if cost[f.y][f.x] != INF:
+    if visited[f.y][f.x]:
        return True, path
     else:
        return False, None
+
+
+
+
+    

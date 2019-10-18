@@ -107,5 +107,4 @@ venv.bak/
 .vscode/
 
 # temp for unit debugging
-greedy.py
 a_star.py

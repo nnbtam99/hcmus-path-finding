@@ -2,8 +2,8 @@ import pygame as pg
 from algo.bfs import bfs
 from algo.dfs import dfs
 from algo.dijkstra import dijkstra
-# from algo.greedy import greedy
-# from algo.a_star import a_star
+from algo.greedy_bfs import greedy_bfs
+from algo.a_star import a_star
 
 from algo.sa import sa_tsp
 
@@ -81,8 +81,8 @@ class World:
          self.trace_path(path, pg.Color('skyblue'))
          print('PATH: Finish tracing path.')
 
-   def find_path_Greedy(self):
-      has_path, path = greedy(self.map.S, self.map.G, \
+   def find_path_GreedyBFS(self):
+      has_path, path = greedy_bfs(self.map.S, self.map.G, \
                            self.map.border.w, self.map.border.h, self.obs)
       if not has_path:
          print('PATH: No path found')
@@ -101,6 +101,15 @@ class World:
          self.trace_path(path, pg.Color('skyblue'))
          print('PATH: Finish tracing path.')
    
+   def find_path_A_Star(self):
+      has_path, path = a_star(self.map.S, self.map.G, \
+                           self.map.border.w, self.map.border.h, self.obs)
+      if not has_path:
+         print('PATH: No path found')
+      else:
+         print('PATH: Tracing...')
+         self.trace_path(path, pg.Color('skyblue'))
+         print('PATH: Finish tracing path.')
 
    def find_path_SA(self):
       sa_tsp(self.map.S, self.map.G, \
@@ -109,8 +118,10 @@ class World:
 
    def run(self):
       self.display()
-      self.find_path_SA()
-      self.find_path_Dijsktra()
+      # self.find_path_SA()
+      # self.find_path_Dijsktra()
+      self.find_path_GreedyBFS()
+      # self.find_path_A_Star()
 
       while self.done == 0:
          events = pg.event.get()
