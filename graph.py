@@ -26,7 +26,7 @@ class Cell:
    Mark a cell as True if should_mark = True
    """
    @staticmethod
-   def render_line(first, second, surface, grid, color, should_mark=False, mark=None):
+   def render_line(first, second, surface, grid, color, mark=None):
       dx, dy            = first.x - second.x, first.y - second.y
       dx_abs, dy_abs    = abs(dx), abs(dy)
       px, py            = 2 * dy_abs - dx_abs, 2 * dx_abs - dy_abs
@@ -44,7 +44,7 @@ class Cell:
             surface.fill(color, grid[y][xs])
 
             # Mark cells on line
-            if should_mark:
+            if mark is not None:
                mark[y][xs] = True
 
             xs          += 1
@@ -57,14 +57,14 @@ class Cell:
       # Y-axis dominates
       else:
          if dy < 0:
-            ys, ye, x   = cell_a.y, cell_b.y, cell_a.x
+            ys, ye, x   = first.y, second.y, first.x
          else:
-            ys, ye, x   = cell_b.y, cell_a.y, cell_b.x
+            ys, ye, x   = second.y, first.y, second.x
 
          while ys <= ye:
             surface.fill(color, grid[ys][x])
 
-            if should_mark:
+            if mark is not None:
                mark[ys][x] = True
 
             ys          += 1
@@ -187,14 +187,14 @@ class CellObstacle(Cell):
       self.next_y    = deque()
 
       # dx: [0, 1, 2, 3, ..., dx, -dx, -(dx + 1), ..., -3, -2, -1]
-      for i in range(x_change + 1):
+      for i in range(dx + 1):
          self.next_x.append(i)
-      for i in range(-x_change, 0):
+      for i in range(-dx, 0):
          self.next_x.append(i)
 
-      for i in range(y_change + 1):
+      for i in range(dy + 1):
          self.next_y.append(i)
-      for i in range(-y_change, 0):
+      for i in range(-dy, 0):
          self.next_y.append(i)
 
    # Move to next state
@@ -217,9 +217,9 @@ class CellObstacle(Cell):
       
       try:
          list_coors     = list(map(int, line.split(delim)))
-         number_coors   = int(ceil(len(list_coors) / 2))
-       
-         for i in range(number_coors):
+         len_coors      = int(ceil(len(list_coors) / 2))
+      
+         for i in range(len_coors):
             x, y        = list_coors[i * 2], list_coors[i * 2 + 1]
             parsed.append(CellObstacle(x=x, y=y, dx=dx, dy=dy))
   
@@ -248,14 +248,13 @@ class Obstacle:
       if movable:
          # Update a new state of obstacle of movable = True
          for i in range(len_cells):
-            self.cells[i].move()
+            self.list_cells[i].move()
             
       # Draw all pair line betweens consecutive vertices
       for i in range(len_cells + 1):
-         CellObstacle.render_line(first=self.cells[i % len_cells], \
-                                  second=self.cells[(i + 1) % len_cells], \
-                                  surface=surface, grid=grid, mark=mark, \
-                                  color=color)
+         u, v           = i % len_cells, (i + 1) % len_cells
+         CellObstacle.render_line(first=self.list_cells[u], second=self.list_cells[v], \
+                                  surface=surface, grid=grid, mark=mark, color=color)
 
    """
    Parse a set of coordinates, which define a obstacle, from line
@@ -268,6 +267,7 @@ class Obstacle:
          list_cells     = CellObstacle.init_from(line=line, delim=delim, \
                                                  dx=dx, dy=dy)
          parsed         = Obstacle(list_cells=list_cells)
+
       except:
          raise Exception('MAP: Fail to init obstacle from line \'{}\'' \
                          .format(line))
@@ -289,7 +289,7 @@ class Map:
    Draw map's components: start node, end node, obstacles and border
    Set movable attribute to obstacles
    """
-   def render(self, surface, grid, movable=True):
+   def render(self, surface, grid, movable=False):
       w, h           = self.border.w, self.border.h
       is_obstacle    = [[False] * w for _ in range(h)]
 
@@ -351,16 +351,14 @@ class Map:
 
       try:
          self.border    = Border.init_from(line=map_file.readline().rstrip('\n'))
-         print('1')
          self.S, self.G, *self.stops = \
-                  tuple(Cell.init_from(line=map_file.readline().rstrip('\n')))
-         print('2')
-         len_obstacles  = int(line=map_file.readline().rstrip('\n'))
+                           tuple(Cell.init_from(line=map_file.readline().rstrip('\n')))
+         len_obstacles  = int(map_file.readline().rstrip('\n'))
          dx = 0
          dy = 1 - dx
 
          for _ in range(len_obstacles):
-            self.obstacles.append(Obstacle.init_from(line=map_f.readline(). \
+            self.obstacles.append(Obstacle.init_from(line=map_file.readline(). \
                           rstrip('\n'), dx=dx, dy=dy))
             dx          = 1 - dx
             dy          = 1 - dx

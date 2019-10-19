@@ -1,11 +1,16 @@
+# Import libaries
 import pygame as pg
 from pygame.locals import *
+
+# Import algorithms
 from algo.bfs import bfs
 from algo.dfs import dfs
 from algo.dijkstra import dijkstra
 from algo.greedy_bfs import greedy_bfs
 from algo.a_star import a_star
 from algo.sa import sa_tsp
+
+# Import extensions
 from ext.eztext import Input as TextHolder
 
 font        = pg.font.Font('./static/font/nunito.ttf', 13)
@@ -15,6 +20,8 @@ FPS         = 25
 
 
 class World:
+
+   # Constructor
    def __init__(self, world_map, grid, size):
       self.done         = 0
       self.map          = world_map
@@ -22,12 +29,19 @@ class World:
       self.grid         = grid
       self.algo_names   = []
       self.inp          = None
-      self.obs          = None
+      self.is_obstacle  = None
       self.surface      = None
 
-   def render_map(self):
-      self.obs          = self.map.render(self.surface, self.grid)
+   # Draw map on the surface
+   def render_map(self, movable=False):
+      self.obs          = self.map.render(surface=self.surface, grid=self.grid, movable=movable)
 
+   """
+   Display world's components:
+   - Grid
+   - Algorithms' names
+   - Input box
+   """
    def display(self):
 
       # Configure window
@@ -36,24 +50,22 @@ class World:
                                                wnd_rect.h * 25))
       self.surface.fill(pg.Color('white'))
 
-      # Render map and get a trace array of obstacles
+      # Render map
       self.render_map()
 
       # Display algorithm options
       title_text           = 'Algorithms:'
-      title_box            = font_bold.render(title_text, True, \
-                                              pg.Color('darkred'))
+      title_box            = font_bold.render(title_text, True, pg.Color('darkred'))
       title_rect           = title_box.get_rect()
       title_rect.center    = self.surface.get_rect().center
-      title_rect.x         = self.map.border.rect.x + \
-                             self.map.border.rect.w + 50
+      title_rect.x         = self.map.border.rect.x + self.map.border.rect.w + 50
       title_rect.y         -= 80
       self.surface.blit(title_box, title_rect)
 
       prev_y               = title_rect.y + 8
       self.algo_names      = ['BFS', 'DFS', 'Dijkstra', \
                               'Greedy BFS', 'A*', \
-                              'Simulated Annealing']
+                              'Simulated Annealing', 'Moving Map']
 
       for idx, e in enumerate(self.algo_names):
          opt_box           = font.render('{}. {}'.format(idx + 1, e), \
@@ -64,6 +76,7 @@ class World:
          prev_y            = opt_rect.y
          self.surface.blit(opt_box, opt_rect)      
 
+      # Display input box
       outline_box_size     = (title_rect.x, prev_y + 30, 200, 25)
       outline_box_rect     = pg.Rect(outline_box_size)
       pg.draw.rect(self.surface, pg.Color('darkred'), outline_box_rect, 1)
@@ -71,12 +84,13 @@ class World:
       inp_size = inp_x, inp_y = outline_box_rect.x + 8, \
                                 outline_box_rect.y + 5
       self.inp = TextHolder(x=inp_x, y=inp_y, maxlength=1, width=21, \
-                            font=font, restricted='123456', \
+                            font=font, restricted='1234567', \
                             prompt='> Your choice: ')
       self.inp.draw(self.surface)
 
       # Update changes
       pg.display.update()
+
 
    def display_path(self, has_path, path, color):
       if not has_path:
@@ -86,6 +100,7 @@ class World:
       print('PATH: Tracing...')
 
       for e in path:
+
          # Fill nodes in path
          self.surface.fill(color, self.grid[e.y][e.x])
 
@@ -119,6 +134,12 @@ class World:
       elif algo == 'Simulated Annealing':
          has_path, path = sa_tsp(self.map.S, self.map.G, self.map.stops, \
                            self.map.border.w, self.map.border.h, self.obs)
+      elif algo == 'Moving Map':
+         while True:
+            self.render_map(movable=True)
+            clock.tick(5)
+            pg.display.update()
+
 
       print('* Running {}:'.format(algo))
       self.display_path(has_path, path, pg.Color('skyblue'))
