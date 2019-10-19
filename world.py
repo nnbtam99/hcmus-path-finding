@@ -120,7 +120,7 @@ class World:
          has_path, path = sa_tsp(self.map.S, self.map.G, self.map.stops, \
                            self.map.border.w, self.map.border.h, self.obs)
 
-      print('* Using', algo)
+      print('* Running {}:'.format(algo))
       self.display_path(has_path, path, pg.Color('skyblue'))
 
    def run(self):
