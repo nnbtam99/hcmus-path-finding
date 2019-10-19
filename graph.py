@@ -174,6 +174,16 @@ class Border:
 
       return parsed
 
+# Create a moving cycle within d units
+def moving_steps(d, steps):
+   for i in range(d + 1):
+      steps.append(i)
+   for i in range(d, -d, -1):
+      steps.append(i)
+   for i in range(-d, 0):
+      steps.append(i)
+   return steps
+
 
 class CellObstacle(Cell):
    def __init__(self, x, y, dx=0, dy=0):
@@ -183,25 +193,21 @@ class CellObstacle(Cell):
       Queues to generate next coordinates if a cell is moving
       First value corresponds to the delta of x and y of a cell's next state
       """
+      self.origin_x  = x
+      self.origin_y  = y
       self.next_x    = deque()
       self.next_y    = deque()
 
       # dx: [0, 1, 2, 3, ..., dx, -dx, -(dx + 1), ..., -3, -2, -1]
-      for i in range(dx + 1):
-         self.next_x.append(i)
-      for i in range(-dx, 0):
-         self.next_x.append(i)
+      moving_steps(dx, self.next_x)
+      moving_steps(dy, self.next_y)
 
-      for i in range(dy + 1):
-         self.next_y.append(i)
-      for i in range(-dy, 0):
-         self.next_y.append(i)
 
    # Move to next state
    def move(self):
       dx, dy      = self.next_x.popleft(), self.next_y.popleft()
-      self.x      += dx
-      self.y      += dy
+      self.x      = self.origin_x + dx
+      self.y      = self.origin_y + dy
       self.next_x.append(dx)
       self.next_y.append(dy)
 
