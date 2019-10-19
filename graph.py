@@ -2,6 +2,8 @@ from math import ceil
 import pygame as pg
 
 scale_pxl = 15
+dx = [0, 0, 1, -1]
+dy = [1, -1, 0, 0]
 
 class Cell:
    def __init__(self, x, y):
@@ -170,6 +172,32 @@ class Map:
          e.render(surface, grid, obs, pg.Color('lightgray'))
 
       return obs
+   
+   @staticmethod
+   def trace_path_by_dir(u, v, path):
+      # Starting node and end node
+      sx, sy = u.x, u.y
+      fx, fy = v.x, v.y
+      res = []
+      
+      # Departed at end node, continue tracing path 
+      # until we meet the starting node
+      while not (fx == sx and fy == sy):
+
+         # Get the direction of parent node
+         i = path[fy][fx]
+
+         # Go to parent node of f
+         fx, fy = fx - dx[i], fy - dy[i]
+
+         # Stop as soon as starting node is reached
+         if fx == sx and fy == sy:
+            break
+
+         res.append(Cell(fx, fy))
+
+      res.reverse()
+      return res
 
    # Load a map from file
    def load(self, path):

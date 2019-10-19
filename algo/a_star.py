@@ -1,32 +1,29 @@
 import sys
 sys.path.append('../')
-from graph import Cell
+from graph import Cell, Map
 import queue
 
 INF = int(1e9)
 
-# 8 directions
-dx = [0, 0, 1, -1, 1, 1, -1, -1]
-dy = [1, -1, 0, 0, 1, -1, 1, -1]
+# 4 directions
+dx = [0, 0, 1, -1]
+dy = [1, -1, 0, 0]
 
 # horizontal & vertical ==> weight = 1
 # diagonal ==> weight = 1.5
 weight = [1, 1, 1, 1, 1.5, 1.5, 1.5, 1.5]
 
 def heuristic(a, b):
-    # On a square grid that allows 8 directions of movement
-    # Use diagonal distance
     dx = abs(a.x - b.x)
     dy = abs(a.y - b.y)
     return (dx + dy) - min(dx, dy)
 
 def a_star(s, f, w, h, obs):
-
-    '''
+    """
     A* algorithm combines Dijkstra and Greedy BFS
     f(x) = g(x) + h(x); g(x) is cost function, h(x) is heuristic function
-    '''
-    # Result containers
+    """
+    # Containers
     path    = [[-1] * w for _ in range(h)]
     cost    = [[INF] * w for _ in range(h)]
     pq      = queue.PriorityQueue()
@@ -66,11 +63,7 @@ def a_star(s, f, w, h, obs):
                     
   # Return (has path, trace path container)
     if cost[f.y][f.x] != INF:
-       return True, path
+       res = Map.trace_path_by_dir(s, f, path)
+       return True, res
     else:
        return False, None
-
-
-
-
-    

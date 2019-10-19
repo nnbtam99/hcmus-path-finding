@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../')
-from graph import Cell
+from graph import Cell, Map
 from collections import deque
 
 # 4 directions
@@ -46,6 +46,7 @@ def bfs(s, f, w, h, obs):
 
    # Return (has path, trace path container)
    if visited[f.y][f.x]:
-      return True, path
+      res = Map.trace_path_by_dir(s, f, path)
+      return True, res
    else:
       return False, None

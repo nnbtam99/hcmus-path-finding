@@ -8,8 +8,11 @@ from algo.a_star import a_star
 from algo.sa import sa_tsp
 from ext.eztext import Input as TextHolder
 
-font = pg.font.Font('./static/font/nunito.ttf', 13)
-font_bold = pg.font.Font('./static/font/nunito-bold.ttf', 14)
+font        = pg.font.Font('./static/font/nunito.ttf', 13)
+font_bold   = pg.font.Font('./static/font/nunito-bold.ttf', 14)
+clock       = pg.time.Clock()
+FPS         = 25
+
 
 class World:
    def __init__(self, world_map, grid, size):
@@ -75,40 +78,21 @@ class World:
       # Update changes
       pg.display.update()
 
-   def trace_path(self, has_path, path, color):
+   def display_path(self, has_path, path, color):
       if not has_path:
          print('PATH: No path found')
          return
 
       print('PATH: Tracing...')
 
-      # Must be consistent with ones used in algorithms
-      dx = [0, 0, 1, -1]
-      dy = [1, -1, 0, 0]
-
-      # Starting node and end node
-      sx, sy = self.map.S.x, self.map.S.y
-      fx, fy = self.map.G.x, self.map.G.y
-      
-      # Departed at end node, continue tracing path 
-      # until we meet the starting node
-      while not (fx == sx and fy == sy):
-
-         # Get the direction of parent node
-         i = path[fy][fx]
-
-         # Go to parent node of f
-         fx, fy = fx - dx[i], fy - dy[i]
-
-         # Stop as soon as starting node is reached
-         if fx == sx and fy == sy:
-            break
-
+      for e in path:
          # Fill nodes in path
-         self.surface.fill(color, self.grid[fy][fx])
+         self.surface.fill(color, self.grid[e.y][e.x])
 
          # Update changes
          pg.display.update()
+
+         clock.tick(FPS)
 
       print('PATH: Finish tracing')
 
@@ -132,8 +116,12 @@ class World:
       elif algo == 'A*':
          has_path, path = a_star(self.map.S, self.map.G, \
                            self.map.border.w, self.map.border.h, self.obs)
-      
-      self.trace_path(has_path, path, pg.Color('skyblue'))
+      elif algo == 'Simulated Annealing':
+         has_path, path = sa_tsp(self.map.S, self.map.G, self.map.stops, \
+                           self.map.border.w, self.map.border.h, self.obs)
+
+      print('* Using', algo)
+      self.display_path(has_path, path, pg.Color('skyblue'))
 
    def run(self):
       self.display()

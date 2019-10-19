@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../')
-from graph import Cell
+from graph import Cell, Map
 import queue
 
 # 4 directions
@@ -8,18 +8,15 @@ dx = [0, 0, 1, -1]
 dy = [1, -1, 0, 0]
 
 def heuristic(a, b):
-    # On a square grid that allows 4 directions of movement
-    # Use diagonal distance
     dx = abs(a.x - b.x)
     dy = abs(a.y - b.y)
     return (dx + dy) - min(dx, dy)
 
 def greedy_bfs(s, f, w, h, obs):
-
-    '''
+    """
     Greedy BFS algorithm uses heuristic function instead of cost.
     h(x) --> heuristic function
-    '''
+    """
 
     # Result containers
     visited  = [[False] * w for _ in range(h)]
@@ -56,8 +53,9 @@ def greedy_bfs(s, f, w, h, obs):
                     priority = heuristic(Cell(x, y), f)
                     pq.put((priority, Cell(x, y)))
                     
-  # Return (has path, trace path container)
+    # Return (has path, path container)
     if visited[f.y][f.x]:
-       return True, path
+       res = Map.trace_path_by_dir(s, f, path)
+       return True, res
     else:
        return False, None
