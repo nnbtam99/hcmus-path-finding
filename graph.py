@@ -1,225 +1,375 @@
+# Import libraries
 from math import ceil
 import pygame as pg
+from collections import deque
 
-scale_pxl = 15
-dx = [0, 0, 1, -1]
-dy = [1, -1, 0, 0]
+# Global constant
+scale_pxl = 15          # Cell's w = h = scale_pxl (scale pixel)
 
 class Cell:
-   def __init__(self, x, y):
-      self.x = x
-      self.y = y 
 
-   # Cell less than or equal <= operator
+   # Constructor
+   def __init__(self, x, y):
+      self.x   = x
+      self.y   = y 
+
+   # Comparator
    def __lt__(self, other):
       return self.x < other.x
 
-   # Color a cell to surface on grid
+   # Draw a cell on the surface with specified color
    def render(self, surface, grid, color):
       surface.fill(color, grid[self.y][self.x])
 
+   """
+   Draw line between two cells by Bresenham's line drawing algorithm
+   Mark a cell as True if should_mark = True
+   """
    @staticmethod
-   def distance(self, other):
-      return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
-   
+   def render_line(first, second, surface, grid, color, should_mark=False, mark=None):
+      dx, dy            = first.x - second.x, first.y - second.y
+      dx_abs, dy_abs    = abs(dx), abs(dy)
+      px, py            = 2 * dy_abs - dx_abs, 2 * dx_abs - dy_abs
 
-   # Bresenham's line drawing algorithm
-   @staticmethod
-   def render_line(cell_a, cell_b, surface, grid, obs, color):
-      dx, dy = cell_a.x - cell_b.x, cell_a.y - cell_b.y
-      dx_abs, dy_abs = abs(dx), abs(dy)
-      px, py = 2 * dy_abs - dx_abs, 2 * dx_abs - dy_abs
-
+      # X-axis dominates
       if dx_abs > dy_abs:
          if dx < 0:
-            xs, xe, y = cell_a.x, cell_b.x, cell_a.y
+            xs, xe, y   = first.x, second.x, first.y
          else:
-            xs, xe, y = cell_b.x, cell_a.x, cell_b.y
+            xs, xe, y   = second.x, first.x, second.y
 
          while xs <= xe:
+
+            # Color cells on line
             surface.fill(color, grid[y][xs])
-            obs[y][xs] = True
-            xs += 1
+
+            # Mark cells on line
+            if should_mark:
+               mark[y][xs] = True
+
+            xs          += 1
             if px < 0:
-               px += 2 * dy_abs
+               px       += 2 * dy_abs
             else:
-               y += (1 if dx * dy > 0 else -1) 
-               px += 2 * (dy_abs - dx_abs)
+               y        += (1 if dx * dy > 0 else -1) 
+               px       += 2 * (dy_abs - dx_abs)
+
+      # Y-axis dominates
       else:
          if dy < 0:
-            ys, ye, x = cell_a.y, cell_b.y, cell_a.x
+            ys, ye, x   = cell_a.y, cell_b.y, cell_a.x
          else:
-            ys, ye, x = cell_b.y, cell_a.y, cell_b.x
+            ys, ye, x   = cell_b.y, cell_a.y, cell_b.x
 
          while ys <= ye:
             surface.fill(color, grid[ys][x])
-            obs[ys][x] = True
-            ys += 1
+
+            if should_mark:
+               mark[ys][x] = True
+
+            ys          += 1
             if py < 0:
-               py += 2 * dx_abs
+               py       += 2 * dx_abs
             else:
-               x += (1 if dx * dy > 0 else -1)
-               py += 2 * (dx_abs - dy_abs)
+               x        += (1 if dx * dy > 0 else -1)
+               py       += 2 * (dx_abs - dy_abs)
 
 
-   # Parse cell from line
+   """
+   Parse a group of cells from line
+   Consider ',' as default delimiter
+   """
    @staticmethod
    def init_from(line, delim=','):
-      cells = []
+      parsed            = []
       try:
-         lst_coor = list(map(int, line.split(delim)))
-         n_coors = int(ceil(len(lst_coor) / 2))
-         for i in range(n_coors):
-            x, y = lst_coor[i * 2], lst_coor[i * 2 + 1]
-            cells.append(Cell(x, y))
+         # Split line to integer (coordinates) arrays seperated by delimiter
+         list_coors     = list(map(int, line.split(delim)))
+
+         """
+         Assump that we're working on 2D coordinate systems,
+         Number of parsed coordinates = ceil(number of parsed integers / 2)
+         """
+         len_coors      = int(ceil(len(list_coors) / 2))
+
+         # Group every 2 coordinates as a cell (x, y)
+         for i in range(len_coors):
+            x, y        = list_coors[i * 2], list_coors[i * 2 + 1]
+            parsed.append(Cell(x=x, y=y))
+
       except:
          raise Exception('MAP: Fail to init cell from line \'{}\'' \
                         .format(line))
          return
 
-      return cells
+      return parsed
 
 
 class Border:
+
+   # Constructor
    def __init__(self, w, h):
-      self.w = w
-      self.h = h
-      self.rect = pg.Rect((0, 0, self.w * scale_pxl, self.h * scale_pxl))
+      self.w      = w
+      self.h      = h
 
+      """
+      pygame's rectangle, square (to be exactly) object of border on surface
+      1 unit of width = a certain number of pixels
+      """
+      self.rect   = pg.Rect((0, 0, self.w * scale_pxl, self.h * scale_pxl))
 
+   """
+   Create a 2D array of square objects
+   Each object corresponds to a cell within border on the surface
+   """
    def create_grid(self):
-      grid = [[pg.Rect((0, 0, scale_pxl, scale_pxl)) \
-               for j in range(self.w)] for i in range(self.h)]
+      grid        = [[pg.Rect((0, 0, scale_pxl, scale_pxl)) \
+                      for j in range(self.w)] for i in range(self.h)]
       return grid
 
 
    # Draw grid of cells within border
    def render(self, surface, grid, color):
-      self.rect.center = surface.get_rect().center
-      self.rect.x = surface.get_rect().w * 0.1
+
+      # Border's y = surface's y
+      self.rect.center  = surface.get_rect().center
+
+      # 10% distance from surface's left edge
+      self.rect.x       = surface.get_rect().w * 0.1
+
+      # Draw border with certain color and width = 2
       pg.draw.rect(surface, color, self.rect, 2)
 
+      # Draw cells
       for i in range(self.h):
          for j in range(self.w):
-            grid[i][j].x = self.rect.x + scale_pxl * j
-            grid[i][j].y = self.rect.y + scale_pxl * i
+            grid[i][j].x   = self.rect.x + scale_pxl * j
+            grid[i][j].y   = self.rect.y + scale_pxl * i
+
+            # Fill cell inside by white color
             surface.fill(pg.Color('white'), grid[i][j])
+
+            # Draw cell outline by color, width = 1
             pg.draw.rect(surface, color, grid[i][j], 1)            
 
+
+   # Get size of border
    def get_size(self):
       return (0, 0, self.w, self.h)
 
 
-   # Parse border from line
+   """
+   Parse border formated as w,h from line
+   Consider ',' as default delimiter
+   """
    @staticmethod
    def init_from(line, delim=','): 
       try:
-         w, h = map(int, line.split(delim))
-         new_border = Border(w, h)
+         w, h        = map(int, line.split(delim))
+         parsed      = Border(w=w, h=h)
       except:
          raise Exception('MAP: Fail to init border from line \'{}\'' \
                         .format(line))
          return
 
-      return new_border
+      return parsed
+
+
+class CellObstacle(Cell):
+   def __init__(self, x, y, dx=0, dy=0):
+      Cell.__init__(self, x, y)
+
+      """
+      Queues to generate next coordinates if a cell is moving
+      First value corresponds to the delta of x and y of a cell's next state
+      """
+      self.next_x    = deque()
+      self.next_y    = deque()
+
+      # dx: [0, 1, 2, 3, ..., dx, -dx, -(dx + 1), ..., -3, -2, -1]
+      for i in range(x_change + 1):
+         self.next_x.append(i)
+      for i in range(-x_change, 0):
+         self.next_x.append(i)
+
+      for i in range(y_change + 1):
+         self.next_y.append(i)
+      for i in range(-y_change, 0):
+         self.next_y.append(i)
+
+   # Move to next state
+   def move(self):
+      dx, dy      = self.next_x.popleft(), self.next_y.popleft()
+      self.x      += dx
+      self.y      += dy
+      self.next_x.append(dx)
+      self.next_y.append(dy)
+
+
+   """
+   Parse a group of obstacles' cells from line
+   Consider ',' as default delimiter
+   Set moving directions of cells with dx, dy
+   """
+   @staticmethod
+   def init_from(line, dx=0, dy=0, delim=','):
+      parsed            = []
+      
+      try:
+         list_coors     = list(map(int, line.split(delim)))
+         number_coors   = int(ceil(len(list_coors) / 2))
+       
+         for i in range(number_coors):
+            x, y        = list_coors[i * 2], list_coors[i * 2 + 1]
+            parsed.append(CellObstacle(x=x, y=y, dx=dx, dy=dy))
+  
+      except:
+         raise Exception('MAP: Fail to init obstacle cell from line \'{}\'' \
+                        .format(line))
+         return
+
+      return parsed
 
 
 class Obstacle:
-   def __init__(self, cells):
-      self.cells = cells
 
+   # Constructor
+   def __init__(self, list_cells):
+      self.list_cells   = list_cells
 
-   def render(self, surface, grid, visited, color):
-      len_O = len(self.cells)
-      for i in range(len_O + 1):
-         Cell.render_line(self.cells[i % len_O], \
-                          self.cells[(i + 1) % len_O], \
-                          surface, grid, visited, color)
+   """
+   Each obstacle is defined by a set of vertices
+   For each consecutive pair of vertices, draw a line between them on the surface
+   Mark and set moving distances to each cells of the obstacle
+   """
+   def render(self, surface, grid, mark, color, movable=False):
+      len_cells         = len(self.list_cells)
 
+      if movable:
+         # Update a new state of obstacle of movable = True
+         for i in range(len_cells):
+            self.cells[i].move()
+            
+      # Draw all pair line betweens consecutive vertices
+      for i in range(len_cells + 1):
+         CellObstacle.render_line(first=self.cells[i % len_cells], \
+                                  second=self.cells[(i + 1) % len_cells], \
+                                  surface=surface, grid=grid, mark=mark, \
+                                  color=color)
 
-   # Parse obstacle from line
+   """
+   Parse a set of coordinates, which define a obstacle, from line
+   Consider ',' as default delimiter
+   For each obstacle, set a random moving distance
+   """
    @staticmethod
-   def init_from(line, delim=','):
+   def init_from(line, delim=',', dx=0, dy=0):
       try:
-         cells = Cell.init_from(line, delim)
-         new_obstacle = Obstacle(cells)
+         list_cells     = CellObstacle.init_from(line=line, delim=delim, \
+                                                 dx=dx, dy=dy)
+         parsed         = Obstacle(list_cells=list_cells)
       except:
          raise Exception('MAP: Fail to init obstacle from line \'{}\'' \
                          .format(line))
          return
    
-      return new_obstacle
+      return parsed
 
 
 class Map:
+
+   # Constructor
    def __init__(self):
       self.border = None
       self.S = self.G = None
       self.stops = []
-      self.O = []
+      self.obstacles = []
 
-   # Draw a map, which includes draw grid,
-   # start node, end node and obstacles
-   def render(self, surface, grid):
-      obs = [[False] * len(grid[0]) for _ in range(len(grid))]
+   """
+   Draw map's components: start node, end node, obstacles and border
+   Set movable attribute to obstacles
+   """
+   def render(self, surface, grid, movable=True):
+      w, h           = self.border.w, self.border.h
+      is_obstacle    = [[False] * w for _ in range(h)]
 
-      self.border.render(surface, grid, pg.Color('lightsteelblue'))
-      self.S.render(surface, grid, pg.Color('steelblue'))
-      self.G.render(surface, grid, pg.Color('tomato'))
+      self.border.render(surface=surface, grid=grid, color=pg.Color('lightsteelblue'))
+      self.S.render(surface=surface, grid=grid, color=pg.Color('steelblue'))
+      self.G.render(surface=surface, grid=grid, color=pg.Color('tomato'))
+
       for e in self.stops:
-         e.render(surface, grid, pg.Color('khaki'))
-      for e in self.O:
-         e.render(surface, grid, obs, pg.Color('lightgray'))
+         e.render(surface=surface, grid=grid, color=pg.Color('khaki'))
 
-      return obs
+      for e in self.obstacles:
+         e.render(surface=surface, grid=grid, color=pg.Color('lightgray'), \
+                  mark=is_obstacle, movable=movable)
+
+      return is_obstacle
    
+   """
+   Create a complete path by tracing by directions (N, E, W, S)
+   from end node to start node
+   """
    @staticmethod
-   def trace_path_by_dir(u, v, path):
-      # Starting node and end node
-      sx, sy = u.x, u.y
-      fx, fy = v.x, v.y
-      res = []
+   def trace_path_by_dir(u, v, dirs):
+      sx, sy      = u.x, u.y
+      fx, fy      = v.x, v.y
+      dx          = [0, 0, 1, -1]
+      dy          = [1, -1, 0, 0]
+      path        = []
       
-      # Departed at end node, continue tracing path 
-      # until we meet the starting node
+      """
+      Started from end node, continue tracing path 
+      until we meet the start node
+      """
       while not (fx == sx and fy == sy):
 
          # Get the direction of parent node
-         i = path[fy][fx]
+         i        = dirs[fy][fx]
 
-         # Go to parent node of f
-         fx, fy = fx - dx[i], fy - dy[i]
+         # Go to parent node of current f
+         fx, fy   = fx - dx[i], fy - dy[i]
 
-         # Stop as soon as starting node is reached
+         # Stop as soon as start node is reached
          if fx == sx and fy == sy:
             break
 
-         res.append(Cell(fx, fy))
+         path.append(Cell(x=fx, y=fy))
 
-      res.reverse()
-      return res
+      # Reverse the path from start node to end node
+      path.reverse()
+      return path
+
 
    # Load a map from file
    def load(self, path):
       try:
-         map_f = open(path, 'r')
+         map_file       = open(path, 'r')
       except:
          raise Exception('MAP: Fail to init map from \'{}\''.format(path))
          return
 
       try:
-         self.border = Border.init_from(map_f.readline().rstrip('\n'))
+         self.border    = Border.init_from(line=map_file.readline().rstrip('\n'))
+         print('1')
          self.S, self.G, *self.stops = \
-                  tuple(Cell.init_from(map_f.readline().rstrip('\n')))
+                  tuple(Cell.init_from(line=map_file.readline().rstrip('\n')))
+         print('2')
+         len_obstacles  = int(line=map_file.readline().rstrip('\n'))
+         dx = 0
+         dy = 1 - dx
 
-         len_O = int(map_f.readline().rstrip('\n'))
-         for _ in range(len_O):
-            self.O.append(Obstacle.init_from(map_f.readline(). \
-                                             rstrip('\n')))
+         for _ in range(len_obstacles):
+            self.obstacles.append(Obstacle.init_from(line=map_f.readline(). \
+                          rstrip('\n'), dx=dx, dy=dy))
+            dx          = 1 - dx
+            dy          = 1 - dx
+
       except Exception as e:
          raise Exception('MAP: {}'.format(e))
       
-      map_f.close()
+      map_file.close()
       grid = self.border.create_grid()
+
       print('MAP: Successfully load map from \'{}\''.format(path))
       return self.border.get_size(), grid
