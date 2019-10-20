@@ -317,9 +317,9 @@ class Map:
    from end node to start node
    """
    @staticmethod
-   def trace_path_by_dir(u, v, dirs):
-      sx, sy      = u.x, u.y
-      fx, fy      = v.x, v.y
+   def trace_path_by_dir(s, f, dirs):
+      sx, sy      = s.x, s.y
+      fx, fy      = f.x, f.y
       dx          = [0, 0, 1, -1]
       dy          = [1, -1, 0, 0]
       path        = []

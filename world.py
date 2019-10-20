@@ -34,7 +34,8 @@ class World:
 
    # Draw map on the surface
    def render_map(self, movable=False):
-      self.obs          = self.map.render(surface=self.surface, grid=self.grid, movable=movable)
+      self.is_obstacle  = self.map.render(surface=self.surface, \
+                                          grid=self.grid, movable=movable)
 
    """
    Display world's components:
@@ -53,18 +54,19 @@ class World:
       # Render map
       self.render_map()
 
-      # Display algorithm options
+      # Display title
       title_text           = 'Algorithms:'
-      title_box            = font_bold.render(title_text, True, pg.Color('darkred'))
+      title_box            = font_bold.render(title_text, True, \
+                                              pg.Color('darkred'))
       title_rect           = title_box.get_rect()
       title_rect.center    = self.surface.get_rect().center
       title_rect.x         = self.map.border.rect.x + self.map.border.rect.w + 50
       title_rect.y         -= 80
       self.surface.blit(title_box, title_rect)
 
+      # Display options for algorithms
       prev_y               = title_rect.y + 8
-      self.algo_names      = ['BFS', 'DFS', 'Dijkstra', \
-                              'Greedy BFS', 'A*', \
+      self.algo_names      = ['BFS', 'DFS', 'Dijkstra', 'Greedy BFS', 'A*', \
                               'Simulated Annealing', 'Moving Map']
 
       for idx, e in enumerate(self.algo_names):
@@ -83,13 +85,12 @@ class World:
       
       inp_size = inp_x, inp_y = outline_box_rect.x + 8, \
                                 outline_box_rect.y + 5
-      self.inp = TextHolder(x=inp_x, y=inp_y, maxlength=1, width=21, \
-                            font=font, restricted='1234567', \
-                            prompt='> Your choice: ')
+      self.inp = TextHolder(x=inp_x, y=inp_y, maxlength=1, width=21, font=font, \
+                            restricted='1234567', prompt='> Your choice: ')
       self.inp.draw(self.surface)
 
       # Update changes
-      pg.display.update()
+      pg.display.update(self.surface.get_rect())
 
 
    def display_path(self, has_path, path, color):
@@ -105,7 +106,7 @@ class World:
          self.surface.fill(color, self.grid[e.y][e.x])
 
          # Update changes
-         pg.display.update()
+         pg.display.update(self.grid[e.y][e.x])
 
          clock.tick(FPS)
 
@@ -114,34 +115,41 @@ class World:
 
    def find_path(self, algo):
       self.render_map()
-      has_path, path = False, None
+      pg.display.update(self.surface.get_rect())
+      has_path, total_cost, path    = False, -1, None
+      print('* Running {}:'.format(algo))
 
       if algo == 'BFS':
-         has_path, path = bfs(self.map.S, self.map.G, self.map.border.w, \
-                              self.map.border.h, self.obs)
+         has_path, total_cost, path = bfs(s=self.map.S, f=self.map.G, \
+                                          w=self.map.border.w, h=self.map.border.h, \
+                                          restricted=self.is_obstacle)
       elif algo == 'DFS':
-         has_path, path = dfs(self.map.S, self.map.G, self.map.border.w, \
-                              self.map.border.h, self.obs)
+         has_path, total_cost, path = dfs(s=self.map.S, f=self.map.G, \
+                                          w=self.map.border.w, h=self.map.border.h, \
+                                          restricted=self.is_obstacle)
       elif algo == 'Greedy BFS':
-         has_path, path = greedy_bfs(self.map.S, self.map.G, \
-                           self.map.border.w, self.map.border.h, self.obs)
+         has_path, total_cost, path = greedy_bfs(s=self.map.S, f=self.map.G, \
+                                          w=self.map.border.w, h=self.map.border.h, \
+                                          restricted=self.is_obstacle)
       elif algo == 'Dijkstra':
-         has_path, path = dijkstra(self.map.S, self.map.G, \
-                           self.map.border.w, self.map.border.h, self.obs)
+         has_path, total_cost, path = dijkstra(s=self.map.S, f=self.map.G, \
+                                          w=self.map.border.w, h=self.map.border.h, \
+                                          restricted=self.is_obstacle)
       elif algo == 'A*':
-         has_path, path = a_star(self.map.S, self.map.G, \
-                           self.map.border.w, self.map.border.h, self.obs)
+         has_path, total_cost, path = a_star(s=self.map.S, f=self.map.G, \
+                                          w=self.map.border.w, h=self.map.border.h, \
+                                          restricted=self.is_obstacle)
       elif algo == 'Simulated Annealing':
-         has_path, path = sa_tsp(self.map.S, self.map.G, self.map.stops, \
-                           self.map.border.w, self.map.border.h, self.obs)
+         has_path, total_cost, path = sa_tsp(self.map.S, self.map.G, \
+                                          self.map.stops, \
+                                          self.map.border.w, self.map.border.h, \
+                                          self.is_obstacle)
       elif algo == 'Moving Map':
          while True:
             self.render_map(movable=True)
             clock.tick(5)
             pg.display.update()
-
-
-      print('* Running {}:'.format(algo))
+      
       self.display_path(has_path, path, pg.Color('skyblue'))
 
    def run(self):
