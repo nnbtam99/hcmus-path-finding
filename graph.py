@@ -17,6 +17,12 @@ class Cell:
    def __lt__(self, other):
       return self.x < other.x
 
+   @staticmethod
+   def distance(first, second):
+      dx, dy   = abs(first.x - second.x), abs(first.y - second.y)
+      return (dx ** 2 + dy ** 2) ** 0.5
+   
+
    # Draw a cell on the surface with specified color
    def render(self, surface, grid, color):
       surface.fill(color, grid[self.y][self.x])

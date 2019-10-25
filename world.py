@@ -8,6 +8,7 @@ from algo.dfs import dfs
 from algo.dijkstra import dijkstra
 from algo.greedy_bfs import greedy_bfs
 from algo.a_star import a_star
+from algo.d_star_lite import DStar
 from algo.sa import sa_tsp
 
 # Import extensions
@@ -97,7 +98,7 @@ class World:
       if not has_path:
          print('PATH: No path found')
          return
-
+      
       print('PATH: Tracing...')
 
       for e in path:
@@ -145,11 +146,16 @@ class World:
                                           self.map.border.w, self.map.border.h, \
                                           self.is_obstacle)
       elif algo == 'Moving Map':
+         finder = DStar(s=self.map.S, f=self.map.G, w=self.map.border.w, \
+                        h=self.map.border.h, restricted=self.is_obstacle)
+
          while True:
             self.render_map(movable=True)
             clock.tick(5)
             pg.display.update()
-      
+            s_move = finder.run(restricted=self.is_obstacle)
+            print(s_move.x, s_move.y)
+ 
       self.display_path(has_path, path, pg.Color('skyblue'))
 
    def run(self):
