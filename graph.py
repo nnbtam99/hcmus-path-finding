@@ -15,9 +15,7 @@ class Cell:
 
    # Comparator
    def __lt__(self, other):
-      if self.x == other.x:
-         return self.y < other.y
-      return self.x < other.x
+      return ((self.x, self.y) < (other.x, other.y))
 
    @staticmethod
    def distance(first, second):
