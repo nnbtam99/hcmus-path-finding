@@ -18,7 +18,7 @@ def a_star(s, f, w, h, restricted):
 
     def heuristic(a, b):
         dx, dy    = abs(a.x - b.x), abs(a.y - b.y)
-        return (dx + dy) - min(dx, dy)
+        return dx + xy
 
     # Containers
     dirs    = [[-1] * w for _ in range(h)]
