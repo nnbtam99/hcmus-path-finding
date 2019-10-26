@@ -16,7 +16,7 @@ def greedy_bfs(s, f, w, h, restricted):
     """
     def heuristic(a, b):
         dx, dy  = abs(a.x - b.x), abs(a.y - b.y)
-        return (dx + dy) - min(dx, dy)
+        return dx + dy
 
     # Containers
     visited    = [[False] * w for _ in range(h)]
