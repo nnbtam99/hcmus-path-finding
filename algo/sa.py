@@ -1,38 +1,37 @@
 import sys
 sys.path.append('../')
 from graph import Cell, Map
-from algo.dijkstra import dijkstra_group
+from algo.dijkstra import dijkstra_net
 from math import exp
 import random
 
-# 4 directions
-dx = [0, 0, 1, -1]
-dy = [1, -1, 0, 0]
 INF = int(1e9)
 
-def sa_tsp(s, f, stops, w, h, obs):
-   def distance_matrix(s, f, stops, w, h, obs):
-      cities = stops.copy()
+def sa_tsp(s, f, stops, w, h, restricted):
+
+   def distance_matrix():
+      cities         = stops.copy()
       cities.append(s)
       cities.append(f)
-      dist = {}
-
+      dist           = {}
+      
       # Find cost of shortest paths between all pair of stops
-      for stop in cities:
-         dist[stop] = {}
-         dijkstra_group(stop, cities, w, h, obs, dist[stop])
-
+      for each in cities:
+         dist[each]  = {}
+         dijkstra_net(s=each, fs=cities, w=w, h=h, \
+                      restricted=restricted, container=dist[each])
+      
       return dist
 
    def acc_prob(d, T):
       """
       If new solution is better than old solution, accept it (p = 1)
-      Else, acceptance probability is e^(-d / T))
+      Else, acceptance probability using Boltzman prob is e^(-d / T))
       Note: we accept worse solution to avoid being stuck in local optima
       """
-      return 1 if d <= 0 else 1 / exp(-d / T)
+      return 1 if d <= 0 else exp(-d / T)
    
-   def energy(s, f, route, dist):
+   def energy(route):
       cities = route.copy()
       cities.insert(0, s)
       cities.append(f)
@@ -62,30 +61,27 @@ def sa_tsp(s, f, stops, w, h, obs):
       new_route[a], new_route[b] = new_route[b], new_route[a]
       return new_route
 
-   
-   # Init distance matrix
-   dist = distance_matrix(s, f, stops, w, h, obs)
-
-   has_path = True
-   path = []
-   total = 0
+   # Calculate distance matrix
+   dist           = distance_matrix()
+   has_path       = True
+   path           = []
+   total          = 0
 
    if len(stops) == 0:
-      cost = dist[s]['cost'][f.y][f.x]
-      has_path &= (cost != INF)
+      total       = dist[s][f]
+      has_path    &= (total != INF)
       
       if has_path:
-         path.extend(Map.trace_path_by_dir(s, f, dist[s]['path']))
+         path.extend(Map.trace_path_by_dir(s=s, f=f, dirs=dist[s]['dirs']))
 
    else:
 
-      # Init state: shuffle all the stops
+      # Initial solution
       random.shuffle(stops)
 
-      # Assume that the initial set of stops are in optimal order
       prev_route     = stops.copy()
       best_route     = prev_route.copy()
-      prev_energy    = best_energy = energy(s, f, prev_route, dist)
+      prev_energy    = best_energy = energy(prev_route)
 
       # Annealing parameters
       alpha          = 0.95                        # Cooling constant
@@ -95,9 +91,9 @@ def sa_tsp(s, f, stops, w, h, obs):
       # Cooling until temperature < T_min
       while T > T_min:
 
-         # Move to a new random neighbor set of stops
+         # Create a random neighbor solution
          curr_route     = move(prev_route)
-         curr_energy    = energy(s, f, curr_route, dist)
+         curr_energy    = energy(curr_route)
 
          # Measure new set of stops
          delta          = curr_energy - prev_energy
@@ -122,14 +118,14 @@ def sa_tsp(s, f, stops, w, h, obs):
       i = 0
       
       while has_path and i < len(best_route) - 1:
-         u, v = best_route[i], best_route[i + 1]
-         cost = dist[u]['cost'][v.y][v.x]
-         has_path &= (cost != INF)
+         u, v           = best_route[i], best_route[i + 1]
+         cost           = dist[u][v]
+         has_path       &= (cost != INF)
       
          if has_path:
-            path.extend(Map.trace_path_by_dir(u, v, dist[u]['path']))
+            path.extend(Map.trace_path_by_dir(s=u, f=v, dirs=dist[u]['dirs']))
 
          total += cost
          i += 1
 
-   return has_path, path
+   return has_path, total, path
