@@ -1,5 +1,6 @@
 Testcase note:
 - 1: No obstacles
 - 2: No path
-- 3: Fixed obstacles
-- 4: Immediate nodes
+- 3: Obstacles, no stops
+- 4: No obstacles, stops
+- 5: Obstacles, stops

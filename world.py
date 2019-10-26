@@ -68,7 +68,7 @@ class World:
       # Display options for algorithms
       prev_y               = title_rect.y + 8
       self.algo_names      = ['BFS', 'DFS', 'Dijkstra', 'Greedy BFS', 'A*', \
-                              'Simulated Annealing', 'Moving Map']
+                              'Simulated Annealing', 'D* Lite']
 
       for idx, e in enumerate(self.algo_names):
          opt_box           = font.render('{}. {}'.format(idx + 1, e), \
@@ -94,7 +94,7 @@ class World:
       pg.display.update(self.surface.get_rect())
 
 
-   def display_path(self, has_path, path, color):
+   def display_path(self, has_path, cost, path, color):
       if not has_path:
          print('PATH: No path found')
          return
@@ -112,7 +112,7 @@ class World:
          clock.tick(FPS)
 
       print('PATH: Finish tracing')
-
+      print('PATH: {0:.4f}'.format(cost))
 
    def find_path(self, algo):
       self.render_map()
@@ -145,7 +145,7 @@ class World:
                                           self.map.stops, \
                                           self.map.border.w, self.map.border.h, \
                                           self.is_obstacle)
-      elif algo == 'Moving Map':
+      elif algo == 'D* Lite':
          finder = DStar(s=self.map.S, f=self.map.G, w=self.map.border.w, \
                         h=self.map.border.h, restricted=self.is_obstacle)
 
@@ -156,7 +156,7 @@ class World:
             s_move = finder.run(restricted=self.is_obstacle)
             print(s_move.x, s_move.y)
  
-      self.display_path(has_path, path, pg.Color('skyblue'))
+      self.display_path(has_path, total_cost, path, pg.Color('skyblue'))
 
    def run(self):
       self.display()
